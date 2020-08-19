@@ -92,6 +92,7 @@ const getObjKategory = async() => {
     let arr2 = [];
     await async.eachOfSeries(list, async(row_list, ind_list) => {
         await async.eachOfSeries(arr, async(row_arr, ind_arr) => {
+          console.log(row_list['id родительской категории'] )
             if (row_arr['@']['id'] == row_list['id родительской категории']) {
                 let obj = {
                     '@': { id: row_list['ID категории'], parentId: row_list['id родительской категории'] },
@@ -107,6 +108,7 @@ const getObjKategory = async() => {
         });
     });
     structureXML.shop.categories.category = arr;
+    structureXML1.shop.categories.category = arr;
     defer.resolve(arr);
     return defer.promise;
 };
@@ -123,6 +125,7 @@ getDataFile().then(async csv => {
     });
     await async.eachOfSeries(csv, async(row, ind) => {
         let cat
+        if(row['Связанные артикулы'] != null){
         await async.eachOfSeries(allcategories, async(row_allcategories, ind_allcategories) => {
             if (row['URL категории'].indexOf(row_allcategories['URL категории']) != -1) {
                 cat = row_allcategories['ID категории']
@@ -144,8 +147,10 @@ getDataFile().then(async csv => {
             price: row['Цена'],
             categoryId: cat,
             picture: row['Ссылка на изображение'],
-            barcode: 88888888,
+            barcode: row['Связанные артикулы'],
         };
+
+console.log('obj', obj.name)
         if (
             obj.name.indexOf('Transvital') != -1 ||
             obj.name.indexOf('transvital') != -1 ||
@@ -154,6 +159,8 @@ getDataFile().then(async csv => {
             obj.name.indexOf('BlanX') != -1 ||
             obj.name.indexOf('blanX') != -1 ||
             obj.name.indexOf('blanx') != -1 ||
+            obj.name.indexOf('Дезодорант Bionsen') != -1 ||
+            obj.name.indexOf('Cпрей Bionsen') != -1 ||
             obj.description.indexOf('Transvital') != -1 ||
             obj.description.indexOf('transvital') != -1 ||
             obj.description.indexOf('Biorepair') != -1 ||
@@ -166,9 +173,10 @@ getDataFile().then(async csv => {
         } else {
             arr1.push(obj);
         }
+      }
         if (ind == csv.length - 1) {
             structureXML.shop.offers.offer = arr;
-            structureXML1.shop.offers.offer = arr;
+            structureXML1.shop.offers.offer = arr1;
 
             //console.log('res', obj);
             let resultXML = js2xmlparser.parse(`yml_catalog`, structureXML);
@@ -176,6 +184,7 @@ getDataFile().then(async csv => {
 
             fs.writeFileSync('ecodom.xml', resultXML.toString());
             fs.writeFileSync('vinokoma.xml', resultXML1.toString());
+            //fs.writeFileSync('dez.xml', resultXML.toString());
         }
     });
 });
